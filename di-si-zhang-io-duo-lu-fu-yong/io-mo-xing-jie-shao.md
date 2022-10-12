@@ -16,7 +16,7 @@
 
 &#x20;      默认情况，socket是阻塞式I/O，数据接收函数recv会一直阻塞等待客户端发送数据，在未收到数据前，就一直阻塞，直到收到数据后，recv才返回。随后，将数据从内核空间转为用户空间，进程拿到数据后开始处理数据。从准备数据到拷贝数据这整个流程中，IO操作都是阻塞的，应用程序不可执行其他任务。
 
-<figure><img src="../.gitbook/assets/image (2).png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../.gitbook/assets/image (2) (1).png" alt=""><figcaption></figcaption></figure>
 
 &#x20;      当我们建立一个Socket Server时，如果不使用多进程或者多线程，一个Server一次只能处理一次请求。如下面例子：
 
