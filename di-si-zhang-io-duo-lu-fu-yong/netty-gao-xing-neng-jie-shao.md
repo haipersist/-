@@ -121,7 +121,7 @@ EventLoopGroup work = new NioEventLoopGroup();
 | EPOLLET      | 将 EPOLL设为边缘触发(Edge Triggered)模式（默认为水平触发），这是相对水平触发(Level Triggered)来说的。 |
 | EPOLLONESHOT | 只监听一次事件，当监听完这次事件之后，如果还需要继续监听这个socke的话，需要再次把这个socket加入到EPOLL队列里         |
 
-<figure><img src="../.gitbook/assets/image.png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../.gitbook/assets/image (9).png" alt=""><figcaption></figcaption></figure>
 
 &#x20;       Netty的解决方案是使用一个计数器，记录无效的轮询次数，当在单个周期内，如果技术超过一定阈值（默认是512），会重新创建selector对象，并重新将SelectionKey注册到selector对象。
 

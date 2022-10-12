@@ -14,7 +14,7 @@
 
 &#x20;     当应用程序想要访问计算机资源都是要通过系统调用完成，而系统调用需要进行从用户态到内核态的切换以及执行完之后的内核态到用户态的切换。比如执行read或者write调用。
 
-<figure><img src="../.gitbook/assets/image (9).png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../.gitbook/assets/image (9) (1).png" alt=""><figcaption></figcaption></figure>
 
 **内核缓冲区**：Page Cache,在操作系统级别，提高磁盘IO效率，优化磁盘文件的读写操作。注意其和磁盘缓冲区的区别。磁盘缓冲区是磁盘和数据总线交换的数据场所，其是磁盘内的一部分随机存储区，通过磁盘缓冲区，可以避免频繁的读写磁盘，这个思想和TCP的粘包比较类似，就只有当缓冲区写满或者读满才进行一次真正的数据交换。
 
