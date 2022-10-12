@@ -545,6 +545,163 @@ public boolean compareAndSet(V   expectedReference,
 
 以上介绍了Java中使用的锁，包括内置锁和Lock接口实现类锁，还有无锁的CAS。其实还有其他的同步器本文没有介绍，比如信号量,CountDownLatch等等，感兴趣的可以看《JAVA并发编程的技术》这本书，介绍的还是比较细致的。
 
+
+
+上面介绍完JAVA的锁，再说下JAVA中的另外一个利器，volatile。
+
+其作用有两个，保持可见性和重排序。
+
+
+
+被其修饰的变量保证内存可见性，意思是说一个线程对变量的修改，其他线程是可以看到的。它的实现方式主要是通过操作系统层面，即在执行写操作的时侯，CPU会在总线发送一个Lock指令（或者采用缓存锁定），使得当前只能有一个处理器处理内存数据，上面也提到过了。
+
+虽然volatile保证可见性，但是还要格外注意，避免非原子性的操作，否则会出现异常，比如下面这个例子：
+
+```
+public class LockPra {
+
+    public static volatile Integer s = 0;
+    public static ReentrantLock lock = new ReentrantLock();
+
+    public class Thre implements Runnable {
+
+        public  void test(){
+            s++;
+            log.info("{} set s into {}",Thread.currentThread().getName(),s);
+        }
+
+        @Override
+        public void run() {
+            log.info("start thread:{}",Thread.currentThread().getName());
+            test();
+            log.info("thread:{} fininshed",Thread.currentThread().getName());
+        }
+    }
+
+
+
+    public void runLock(){
+        log.info("Start main at {}",DateLib.getTime());
+        ExecutorService executorService = Executors.newFixedThreadPool(10);
+        for (int i=0;i<9;i++){
+            executorService.execute(new Thre());
+        }
+        executorService.shutdown();
+       try{
+           Thread.sleep(1L);
+       }catch (Exception e){
+
+       }
+        log.info("End main at {},S:",DateLib.getTime(),s);
+    }
+
+}
+```
+
+s++是一个非原子性的操作，首先执行读，然后写，读和写并不是原子操作。结果就像下面：
+
+![](http://blog-1251509264.costj.myqcloud.com/\_3.png)
+
+线程1和2在读的时侯都获取了当前最新值0，当线程1修改了i的值，线程2中的i值失效了，但是由于读写不是原子操作，此时它并不会再去读一次线程i的有效值，而是直接执行了+1的操作，所以都更新了当前的值为1。如果要实现同步，还是要加锁。volitale更适合一写，多读的情况或者至少写操作不依赖于当前变量的值。
+
+volatile的实现原理就是通过加入内存屏障。
+
+\
+(1)在volatile写操作的前面插入一个StoreStore屏障。保证volatile写操作不会和之前的写操作重排序。\
+(2)在volatile写操作的后面插入一个StoreLoad屏障。保证volatile写操作不会和之后的读操作重排序。\
+(3)在volatile读操作的后面插入一个LoadLoad屏障+LoadStore屏障。保证volatile读操作不会和之后的读操作、写操作重排序。
+
+说到内存可见性，除了volatile，还有锁，以及final。锁自不必说。说一下final
+
+final也可以保证内存的可见性，意思是一旦构造器初始化完成被final修饰的变量，且没有通过this引用传递，那么其他线程就能看见final变量的值。
+
+对于final的介绍可以看这篇文章： [final关键字深入解析](https://juejin.im/post/5b8821b5e51d4538a108c969)
+
+volatile变量第二个特性：可以保证代码有序性。
+
+因为处理器本身在执行代码的时侯，会根据情况进行优化，可能会发生指令重排，即程序执行的顺序可能和代码编写顺序不一致。volatile可以保证有序性。有序性到底有何好处呢？
+
+一个非常著名的就是单例模式的DCL（Double Checking Lock).
+
+```java
+public class TestL {
+
+    public static Signle signle;
+
+    public Signle getSignle(){
+        if(null == signle){
+            synchronized (this){
+              if(null == signle){
+                signle =  new Signle();
+              }
+            }
+        }
+        return  signle;
+    }
+
+    public class Signle {
+        
+    }
+}
+```
+
+上面一是判断单例是不是null，如果是null，利用同步锁，初始化。乍一看，没啥问题的。当判断不是null时，尝试获取锁，获取成功就实例化对象。
+
+但上面的操作在多线程可能会出现错误，某个线程可能会获得一个未初始化完成的实例。
+
+一个对象的初始化其实是分几步来进行的：
+
+1、内存地址分配；
+
+2、初始化对象；
+
+3、将内存空间地址赋值给对象的引用。
+
+在初始化的过程中，非常有可能因为指令重排，导致步骤2和3执行顺序颠倒。而这引起的一个问题就是，假如线程A在初始化的过程中，但还并未实际初始化对象的时，线程B判断此时并不是null（第一个null），就直接返回这个不成熟的对象，那么此时就会出现问题的。
+
+而利用volatile修饰变量，就可以解决这个问题，它会禁止2和3两个步骤重排序。
+
+注意synchronized的有序性和volatile的有序性不一样。synchronized有序性是多线程串行执行，不能保证线程内的指令重排。volatile的有序性即是禁止指令的重排序。因此DCL是需要volatile修饰变量的。
+
+
+
+在Java中有个原则叫做happens-before原则：
+
+* 程序顺序规则：同一个线程中的，前面的操作 happen-before 后续的操作。（即单线程内按代码顺序执行。但是，在不影响在单线程环境执行结果的前提下，编译器和处理器可以进行重排序，这是合法的。换句话说，这一是规则无法保证编译重排和指令重排）
+* 监视器锁规则：对一个锁的解锁，happens-before于随后对这个锁的加锁。
+* volatile变量规则：对一个volatile域的写，happens-before于任意后续对这个volatile域的读。
+* 传递性：如果A happens-before B，且B happens-before C，那么A happens-before C。
+* start()规则：如果线程A执行操作ThreadB.start()（启动线程B），那么A线程的ThreadB.start()操作happens-before于线程B中的任意操作。
+* join()规则：如果线程A执行操作ThreadB.join()并成功返回，那么线程B中的任意操作happens-before于线程A从ThreadB.join()操作成功返回。
+* 程序中断规则：对线程interrupted()方法的调用先行于被中断线程的代码检测到中断时间的发生。
+* 对象finalize规则：一个对象的初始化完成（构造函数执行结束）先行于发生它的finalize()方法的开始。
+
+JVM通过内存屏障实现了有序性，禁止指令重排，内存屏障是一组处理器指令，具体的可以网上查阅，只要知道volatile变量保证下面两点：
+
+1）当程序执行到volatile变量的读操作或者写操作时，在其前面的操作的更改肯定全部已经进行，且结果已经对后面的操作可见；在其后面的操作肯定还没有进行；
+
+2）在进行指令优化时，不能将在对volatile变量访问的语句放在其后面执行，也不能把volatile变量后面的语句放到其前面执行。
+
+说到DCL，额外延伸，除了使用volatile解决双重检查锁定问题外，还有一种方法可解决DCL，那就是基于类的初始化。
+
+```java
+public class TestL {
+
+    private static class ClassInstan {
+        public static Signle signle = new Signle();
+    }
+
+    public Signle getSignle(){
+       return ClassInstan.signle;
+    }
+
+    public class Signle {
+
+    }
+```
+
+
+
 \
 
 
@@ -552,7 +709,7 @@ public boolean compareAndSet(V   expectedReference,
 
 **锁的分类**
 
-本文主要谈论InnoDB引擎的锁。下面是我画的一个思维导图，主要从不同维度去划分锁。
+本文主要谈论InnoDB引擎的锁。下面是我画的一个思维导图，主要从不同维
 
 ![](https://p3-sign.toutiaoimg.com/tos-cn-i-qvj2lq49k0/c715010879e346f8acbed5ceb8b43c00\~noop.image?\_iz=58558\&from=article.pc\_detail\&x-expires=1664882030\&x-signature=JzRRG92RAOJJoA%2BneikWdHCWKW0%3D)
 
