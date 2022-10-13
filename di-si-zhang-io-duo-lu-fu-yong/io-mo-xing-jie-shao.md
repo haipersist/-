@@ -75,7 +75,7 @@ class Server(BaseSocket):
 
 &#x20;     如果将socket设置成非阻塞，那么recv总是立即返回，如果数据没有准备好，就会一直发送错误。注意，这里强调的是如果没有数据，虽然立即返回了，但还回一直不断重试，直到数据准备好。
 
-<figure><img src="../.gitbook/assets/image (5).png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../.gitbook/assets/image (5) (1).png" alt=""><figcaption></figcaption></figure>
 
 我们把第一个代码稍微变动一下，将I/O设置成非阻塞的。
 

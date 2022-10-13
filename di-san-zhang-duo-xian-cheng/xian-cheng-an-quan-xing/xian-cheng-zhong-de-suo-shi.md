@@ -165,7 +165,7 @@ atomic包下的CAS乐观锁
 
 其中sychronized和Lock接口实现类本质上都是悲观锁，atomic包下的是采用CAS思想实现的乐观锁。悲观锁和乐观锁的区别不再赘述，首先说一下两种悲观锁的区别。
 
-<figure><img src="../../.gitbook/assets/image.png" alt=""><figcaption><p>悲观锁对比</p></figcaption></figure>
+<figure><img src="../../.gitbook/assets/image (5).png" alt=""><figcaption><p>悲观锁对比</p></figcaption></figure>
 
 从上面对比可以看到，Lock接口实现类提供了更加灵活、丰富的锁特性，而不是sychronized那种固化的加锁模式，但也不是说sychronized就不能用，如果我们不需要Lock所提供的特性，完全没必要使用Lock实现类，因为sychronized经过1.6的升级，性能也很好。接下来详细介绍一下这几种锁。
 
@@ -886,7 +886,11 @@ mysql> show variables like "%innodb_lock_wait_timeout%";
 +--------------------------+-------+
 ```
 
-二是死锁检测，其基本原理就是构建一个以事务为顶点、锁为边的有向图，判断有向图是否存在闭环，如果存在就证明有死锁。具体实现这里就不做分析了。
+二是死锁检测，其基本原理就是构建一个以事务为顶点、锁为边的有向图，判断有向图是否存在闭环，如果存在就证明有死锁。
+
+<figure><img src="../../.gitbook/assets/image.png" alt=""><figcaption></figcaption></figure>
+
+具体实现这里就不做分析了。
 
 上面是提到了死锁的处理方式，但解决死锁最好的方式还是预防，这就取决于我们平时写的sql了。总结几个尽量预防死锁的方式：
 
