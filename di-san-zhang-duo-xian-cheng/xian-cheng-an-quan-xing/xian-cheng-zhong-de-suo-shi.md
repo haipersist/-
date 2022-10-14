@@ -381,7 +381,21 @@ ReentrantLock第二大特点就是支持非公平和公平锁，非公平锁上�
 
 只有满足以上条件才会获取锁，从而保证了公平性。
 
-三是可中断，可中断也是利用了AQS的特性，这个后面再详细介绍。
+三是可中断，可中断也是利用了AQS的特性。
+
+可以看到使用AQS的几大类，都是利用了AQS的state，等待队列等特性。
+
+ReentrantLock： state只能为0，1。独占锁，只有为0，且CAS成功变成1才会获得锁。
+
+Semaphore：state初始一个数，同时最多有不超过该数目的线程获取到资格。释放时会把该值+1.
+
+CountDownLatch：它的利用机制比较有意思。这个类的作用是同步，比如有三个任务，A，B ,C，只有A，B执行完，才能执行C。该对象也会在初始化的时候初始一个state.然后此时一个线程（通常是主线程）调用await，该方法发现state不是0，就进入等待队列。其他线程执行完会执行countDown，将state-1,当state变成0，被阻塞的线程会被唤醒。
+
+ThreadPoolExecutor：线程池中的Worker使用了AQS，独占锁，保证了当线程正在运行时，调用shutdown中断不了，只能中断空闲线程。
+
+
+
+
 
 **ReentrantReadWriteLock**
 
