@@ -219,14 +219,16 @@ private boolean addWorker(Runnable firstTask, boolean core) {
 好了，上面是整个线程池的运行原理。再说下线程池的生命周期。线程池一共存在以下几个生命周期：
 
 ```
-RUNNING:  接收新任务，也会处理队列中的任务
-SHUTDOWN: 不会接收新任务，但会执行队列中的任务
-STOP:     完全停止，不会执行任何任务，队列中的也会被忽略
-TIDYING:  所有任务都停止了，线程数也是0，就会进入该状态，并且下一步就进入TERMINATED
-TERMINATED: 线程池任务结束了。
+RUNNING:  -1 << COUNT_BITS，即高3位为111  接收新任务，也会处理队列中的任务
+SHUTDOWN: 0 << COUNT_BITS，即高3位为000 不会接收新任务，但会执行队列中的任务
+STOP:     1 << COUNT_BITS，即高3位为001 完全停止，不会执行任何任务，队列中的也会被忽略
+TIDYING:   2 << COUNT_BITS，即高3位为010,  所有任务都停止了，线程数也是0，就会进入该状态，并且下一步就进入TERMINATED
+TERMINATED:3 << COUNT_BITS，即高3位为011, 线程池任务结束了。
 ```
 
-表示线程状态的字段是ctl，是一个原子类，AtomicInteger。
+表示线程状态的字段是ctl，是一个原子类，AtomicInteger。可以看到，线程池的状态是采用高3位表示，这是因为这个字段不仅仅表示线程池状态，还可以表示实际的线程数量，由于是个AtomicInteger类型，所以最多的线程只能是2^29 -1，不过官方也说过，未来可以将其类型改成AtomicLong。
+
+
 
 <figure><img src="../../.gitbook/assets/image (15).png" alt=""><figcaption><p>线程池生命周期</p></figcaption></figure>
 
