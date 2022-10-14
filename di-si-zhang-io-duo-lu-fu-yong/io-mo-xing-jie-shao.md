@@ -170,7 +170,7 @@ class Server(BaseSocket):
 
 &#x20;&#x20;
 
-<figure><img src="../.gitbook/assets/image (3).png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../.gitbook/assets/image (3) (1).png" alt=""><figcaption></figcaption></figure>
 
 &#x20;       Linux AIO看似比较好，但其存在的缺点仍然不容忽视，如只支持ODIRECT模式，如果之前看过我写的零拷贝的文章的同学就会知道，使用O\_DIRECT方式直接绕过了PageCache，如果是数据库应用，由于其自身实现了进程内缓存，完全是OK的，那对于非自身实现用户空间缓存的应用来说，是致命的，因为不能利用页缓存，性能会变得非常差。
 

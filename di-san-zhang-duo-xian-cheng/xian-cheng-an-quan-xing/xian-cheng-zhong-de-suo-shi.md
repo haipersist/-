@@ -547,7 +547,17 @@ public boolean compareAndSet(V   expectedReference,
 
 
 
-上面介绍完JAVA的锁，再说下JAVA中的另外一个利器，volatile。
+上面介绍完JAVA的锁，再说下JAVA中的另外几个利器。
+
+TLAB
+
+volatile
+
+**TLAB**
+
+于对象的实例化要经过对象创建、内存分配、指针应用等过程。所以在多线程下会造成不安全。想解决该问题，我们可以通过同步锁来实现；此外，JVM引入了一个TLAB（Thread-Local Allocation Buffers）的概念，他为每个线程在堆上都申请一块内存，不同线程之间是相互独立的，在对象分配内存时尽量在TLAB上分配，不足时再到普通的堆上分配。TLAB比较好的介绍： [https://www.cnblogs.com/zhxdick/p/14371562.html](https://www.cnblogs.com/zhxdick/p/14371562.html)
+
+**volatile**
 
 其作用有两个，保持可见性和重排序。
 

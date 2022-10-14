@@ -207,9 +207,7 @@ private boolean addWorker(Runnable firstTask, boolean core) {
 
 线程池中的线程执行任务的流程如下：
 
-![](https://p3-sign.toutiaoimg.com/tos-cn-i-qvj2lq49k0/fa253093be3e4f35843dd9a9a666ec34\~noop.image?\_iz=58558\&from=article.pc\_detail\&x-expires=1664882032\&x-signature=qsJWXiceQV5nWd9sRC6o3Kpvo%2Bw%3D)
-
-线程任务处理流程
+<figure><img src="../../.gitbook/assets/image (3).png" alt=""><figcaption><p>线程任务处理流程</p></figcaption></figure>
 
 上面注意的是核心线程（或者核心线程和队列都满了之后，创建线程成功时）在创建时会带上firstTask。
 
@@ -228,13 +226,17 @@ TIDYING:  所有任务都停止了，线程数也是0，就会进入该状态，
 TERMINATED: 线程池任务结束了。
 ```
 
-![](https://p3-sign.toutiaoimg.com/tos-cn-i-qvj2lq49k0/0712f170a8c14883b66ad83925cde46f\~noop.image?\_iz=58558\&from=article.pc\_detail\&x-expires=1664882032\&x-signature=ieyhAc5tLSmPjuZHa%2FUnRS5k34A%3D)
+表示线程状态的字段是ctl，是一个原子类，AtomicInteger。
 
-线程池生命周期
+<figure><img src="../../.gitbook/assets/image (15).png" alt=""><figcaption><p>线程池生命周期</p></figcaption></figure>
+
+&#x20;      这里要提到Worker使用了AQS，目的是对于运行种的线程使用独占锁，时，并不会终止运行中的线程，只会终止空闲线程。原理就是在run Worker时会调用worker的lock方法，获取独占锁，在释放锁之前，此时调用interruptIdleWorker时也会tryLock，但会失败（不会自旋，也不会进入阻塞队列）。
+
+
 
 **线程池关闭**
 
-通常我们在项目中会静态初始化线程池或者初始化Bean，在应用程序运行中，线程池会一直保持Running状态。但它我们kill应用或者因为其他原因down掉，以及正常重启。为了实现线程的优雅关闭，可以为线程池增加钩子函数，shutDownHook。类似：
+通常我们在项目中会静态初始化线程池或者初始化Bean，在应用程序运行中，线程池会一直保持Runn状态。但它我们kill应用或者因为其他原因down掉，以及正常重启。为了实现线程的优雅关闭，可以为线程池增加钩子函数，shutDownHook。类似：
 
 ```
         Runtime.getRuntime().addShutdownHook(new Thread(JVMShutdownHookTest::doSomething));
@@ -288,6 +290,18 @@ spring-lifecycle:
 ```
 
 这两个参数决定服务下线时，如何终止线程池，是调用shutdown，还是shutdownNow()，以及最长的等待时间。
+
+
+
+JAVA中常见的线程池：
+
+1. newFixedThreadPool
+2. newSingleThreadExecutor
+3. newCachedThreadPool
+
+
+
+
 
 ## 3、Dubbo线程池
 
