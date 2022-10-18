@@ -10,6 +10,7 @@ JAVA提供了很多种容器，从并发角度可分为线程安全和线程不�
 * 多个阻塞队列
 * ConcurrentLinkedQueue
 * ConcurrentLinkedDeque
+* ConcurrentSkipListMap
 
 **1、CopyOnWriteArrayList**
 
