@@ -85,18 +85,21 @@ linux中在之前的版本中并不支持多线程，后来是引入了用户级
 对于多线程的学习，主要是通过JAVA实现。JAVA中只有多线程，其对多线程的应用特别完善，其兼顾了性能、安全性等多个方面。概括说JAVA所提供的功能包括。
 
  1、性能
-   线程池，ThreadPoolExecutor
-   Future,CompletableFuture
-   Fork/Join框架
+ 
+    线程池，ThreadPoolExecutor
+    Future,CompletableFuture
+    Fork/Join框架
    
  2、安全性
+    
     volatile
     final
     锁：
-      sychronized
-      Lock接口(主要借助于AQS,Condition)
-            ReentrantLock
-            ReentantReadAndWriteLock
+       sychronized
+       Lock接口(主要借助于AQS,Condition)
+       
+             ReentrantLock
+             ReentantReadAndWriteLock
     并发容器：
        ConcurrentHashmap
        CopyOnWriteArrayList
