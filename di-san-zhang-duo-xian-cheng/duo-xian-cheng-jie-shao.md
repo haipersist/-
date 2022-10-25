@@ -105,7 +105,7 @@ linux中在之前的版本中并不支持多线程，后来是引入了用户级
        
              ReentrantLock  独占锁
              ReentantReadAndWriteLock  读写锁，读读可并行，读写、写写均互斥
-             StampedLock  解决读写锁由于读写互斥可能导致的写线程的线程饥饿。其在悲观读写锁的基础上增加了乐观读。
+             StampedLock  解决当读多写少的场景下，读写锁由于读写互斥可能导致的写线程的线程饥饿。其在悲观读写锁的基础上增加了乐观读。并对于每次读锁都使用了stamp。
     并发容器：
        ConcurrentHashmap
        CopyOnWriteArrayList
