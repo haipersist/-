@@ -86,20 +86,25 @@ linux中在之前的版本中并不支持多线程，后来是引入了用户级
 
  1、性能
  
-    线程池，ThreadPoolExecutor
-    Future,CompletableFuture
-    Fork/Join框架
+    线程池ExecutorService接口，实现类ThreadPoolExecutor，同时提供了多种线程池的实现方式
+           1.FixedThreadPoolExecutor.核心线程和最大线程都是固定的。
+           2.newSingleThreadExecutor  只有一个线程执行
+           3.newCachedThreadPool  线程数量没有限制（实际上也受到Integer.MAX_VALUE限制），使用了Sychronized队列
+           4.newWorkStealingPool 这个实际上是Fork/Join框架提供的功能。
+         
+    Future,CompletableFuture   实现异步接收数据，提供API可获取当前响应数据状态
+    Fork/Join框架     并行递归执行，如并行排序，并行查找。
    
  2、安全性
     
-    volatile
-    final
-    锁：
-       sychronized
+    volatile    保持了可见性、禁止重排序（通过内存屏障）
+    final   保证了初始化的可见性
+    锁： 
+       sychronized   锁的升级
        Lock接口(主要借助于AQS,Condition)
        
-             ReentrantLock
-             ReentantReadAndWriteLock
+             ReentrantLock  独占锁
+             ReentantReadAndWriteLock  读写锁
     并发容器：
        ConcurrentHashmap
        CopyOnWriteArrayList
