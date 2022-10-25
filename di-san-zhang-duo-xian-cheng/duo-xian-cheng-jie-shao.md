@@ -121,10 +121,11 @@ linux中在之前的版本中并不支持多线程，后来是引入了用户级
             DelayQueue
             
   3、并发工具
-     1、Semphore
-     2、CountDownLatch
-     3、CylicBarriew
-     4、Exchanger
+  
+     1、Semphore    信号量，和Linux的Semphore比较类似，但linux的信号量只能是0，1,JAVA的可以设置任意整数值，用于控制并发量。使用AQS，通过state值实现。
+     2、CountDownLatch  使用AQS，通过设置等待，可以使得主线程等待其他线程执行完之后执行。主线程只能在state是0的时候才可以获取锁。
+     3、CylicBarriew  相比于CountDownLatch，其可以相互等待，并且不仅可以等待一次，可以循环多次，通过nextGeneration实现，其未使用AQS,而是借助ReentrantLock以及Condition实现。
+     4、Exchanger  线程间交换数据，我是没用过。我觉得对于业务编码有些增加了复杂性。其原理大致是通过设置槽数组，来实现不同线程间的数据交换。
      
  
    
