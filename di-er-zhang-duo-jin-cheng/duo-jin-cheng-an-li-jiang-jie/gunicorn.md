@@ -4,13 +4,13 @@
 
 &#x20;      Gunicorn和Nginx一样是采用了多进程模型，pre-fork，master也同样负责worker管理，worker用来进行请求处理。不过和Nginx不同的是，Gunicorn worker实现了多种处理模型，包括多线程、协程、IO多路复用、异步等方式处理请求。
 
-![](<../../.gitbook/assets/9 (1)>)
+![](../../.gitbook/assets/9)
 
 上面的stat中的l表示的是多线程。
 
 &#x20;      在实际应用场景中，Nginx和Gunicorn会配合使用，各司其职，Nginx是反向代理的角色，可以做静态资源代理，可以实现负载均衡，而Gunicorn充当的就是Web Server的角色，解析Http请求，调用Python应用处理请求，返回请求。
 
-![IMG\_256](../../.gitbook/assets/10)
+![IMG\_256](<../../.gitbook/assets/10 (1)>)
 
 接下来一起看下gunicorn的源码，看他是如何实现pre-fork的。
 

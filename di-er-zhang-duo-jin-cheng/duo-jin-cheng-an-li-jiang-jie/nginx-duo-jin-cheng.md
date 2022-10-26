@@ -2,7 +2,7 @@
 
 Nginx是标准的多进程模型，通过一个master来管理多个work子进程，子进程用于处理请求。
 
-![IMG\_256](../../.gitbook/assets/8)
+![IMG\_256](<../../.gitbook/assets/8 (1)>)
 
 &#x20;      Nginx启动之后，首先会创建一个master进程，并创建需要监听的socket,这里就是我们创建socket的基本操作，bind对应的ip和端口，调用listen，随后master会fork一定数量的子进程，即worker，worker的数量是可以在配置文件中配置的，当然一般情况下为了避免进程上下文切换，基本上都是CPU核数。fork出的子进程会继承master资源，这其中也包括相同的socket，这时所有的worker复用了相同的ip和端口。
 

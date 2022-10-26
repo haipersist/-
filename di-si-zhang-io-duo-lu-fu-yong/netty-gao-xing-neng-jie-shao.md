@@ -18,7 +18,7 @@ Netty官网对自己的定位：
 
 &#x20; &#x20;
 
-<figure><img src="../.gitbook/assets/image (20).png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../.gitbook/assets/image (1).png" alt=""><figcaption></figcaption></figure>
 
 &#x20;   Netty在启动时会创建两个NioEventLoopGroup，一个用于处理连接，通常称为boss，一个用于处理I/O，通常称为work。
 

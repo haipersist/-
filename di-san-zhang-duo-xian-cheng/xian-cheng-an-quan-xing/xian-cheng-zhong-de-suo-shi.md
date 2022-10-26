@@ -167,7 +167,11 @@ atomic包下的CAS乐观锁
 
 <figure><img src="../../.gitbook/assets/image (5).png" alt=""><figcaption><p>悲观锁对比</p></figcaption></figure>
 
-从上面对比可以看到，Lock接口实现类提供了更加灵活、丰富的锁特性，而不是sychronized那种固化的加锁模式，但也不是说sychronized就不能用，如果我们不需要Lock所提供的特性，完全没必要使用Lock实现类，因为sychronized经过1.6的升级，性能也很好。接下来详细介绍一下这几种锁。
+&#x20;&#x20;
+
+&#x20;     从上面对比可以看到，Lock接口实现类提供了更加灵活、丰富的锁特性，如ReentantLock，可以配合Condition可以实现不同的条件等待，而配合synchronized使用的wait不能实现分条件的等待。此外，sychronized是从队尾开始唤醒线程。
+
+但也不是说sychronized就不能用，如果我们不需要Lock所提供的特性，完全没必要使用Lock实现类，因为sychronized经过1.6的升级，性能也很好。接下来详细介绍一下这几种锁。
 
 **Sychronized**
 
