@@ -19,12 +19,65 @@ Executor继承图
 6，isShutdown（）：测试是否该ExecutorService已被关闭。
 ```
 
-\
+当调用线程池的shutdown方式时，会见线程池状态变成shutdown，并中断空闲线程，此时不会中断正在执行任务的线程，队列中的任务也会被执行。判断是否是空闲线程的方法是通过Worker的AQS实现的。在中断线程时，如果tryLock失败，就不会中断（线程在执行任务的时候会执行tryLock类似加锁，如果tryLock失败，证明这个线程以及那个在执行了）。
+
+```java
+ public void shutdown() {
+        final ReentrantLock mainLock = this.mainLock;
+        mainLock.lock();
+        try {
+            checkShutdownAccess();
+            //更新线程池状态
+            advanceRunState(SHUTDOWN);
+            //中断空闲线程
+            interruptIdleWorkers();
+            //添加的钩子函数
+            onShutdown(); // hook for ScheduledThreadPoolExecutor
+        } finally {
+            mainLock.unlock();
+        }
+        tryTerminate();
+    }
+```
+
+中断空闲线程的操作：
+
+```java
+ private void interruptIdleWorkers(boolean onlyOne) {
+        final ReentrantLock mainLock = this.mainLock;
+        mainLock.lock();
+        try {
+            for (Worker w : workers) {
+                Thread t = w.thread;
+                 //如果该worker正在执行，tryLock会失败
+                if (!t.isInterrupted() && w.tryLock()) {
+                    try {
+                        t.interrupt();
+                    } catch (SecurityException ignore) {
+                    } finally {
+                        w.unlock();
+                    }
+                }
+                if (onlyOne)
+                    break;
+            }
+        } finally {
+            mainLock.unlock();
+        }
+    }
+```
+
+
+
+当调用shutdownNow时，线程池的状态会变为shutdownNow，并尝试中断所有任务，即向所有线程发出intterupt，不过注意，线程并不一定会立即停止，只是会给线程发个标志位，中断标志位变为true，如果是sleep，join，wait等，即不是runable，会直接抛出中断异常，并清除中断标志位。但如果是执行状态，还是要看线程本身会何时终止。
+
+
+
 
 
 **线程池实现原理**
 
-ThreadPoolExecutor为核心实现类（java也提供了几个可用的线程池类，如FixThreadPoolExecutor等，但最好还是自定义，除非要使用\
+ThreadPoolExecutor为核心实现类（java也提供了几个可用的线程池类，如FixThreadoolExecutor等，但最好还是自定义，除非要使用\
 ScheduleThreadPoolExecutor等带有定时功能的线程池），java中的线程池的创建都是围绕该类进行的。该类有几个重要的参数：
 
 ```
@@ -211,8 +264,7 @@ private boolean addWorker(Runnable firstTask, boolean core) {
 
 上面注意的是核心线程（或者核心线程和队列都满了之后，创建线程成功时）在创建时会带上firstTask。
 
-\
-
+\\
 
 **线程生命周期**
 
@@ -228,13 +280,9 @@ TERMINATED:3 << COUNT_BITS，即高3位为011, 线程池任务结束了。
 
 表示线程状态的字段是ctl，是一个原子类，AtomicInteger。可以看到，线程池的状态是采用高3位表示，这是因为这个字段不仅仅表示线程池状态，还可以表示实际的线程数量，由于是个AtomicInteger类型，所以最多的线程只能是2^29 -1，不过官方也说过，未来可以将其类型改成AtomicLong。
 
-
-
 <figure><img src="../../.gitbook/assets/image (15).png" alt=""><figcaption><p>线程池生命周期</p></figcaption></figure>
 
-&#x20;      这里要提到Worker使用了AQS，目的是对于运行种的线程使用独占锁，时，并不会终止运行中的线程，只会终止空闲线程。原理就是在run Worker时会调用worker的lock方法，获取独占锁，在释放锁之前，此时调用interruptIdleWorker时也会tryLock，但会失败（不会自旋，也不会进入阻塞队列）。
-
-
+这里要提到Worker使用了AQS，目的是对于运行种的线程使用独占锁，时，并不会终止运行中的线程，只会终止空闲线程。原理就是在run Worker时会调用worker的lock方法，获取独占锁，在释放锁之前，此时调用interruptIdleWorker时也会tryLock，但会失败（不会自旋，也不会进入阻塞队列）。
 
 **线程池关闭**
 
@@ -293,17 +341,11 @@ spring-lifecycle:
 
 这两个参数决定服务下线时，如何终止线程池，是调用shutdown，还是shutdownNow()，以及最长的等待时间。
 
-
-
 JAVA中常见的线程池：
 
 1. newFixedThreadPool
 2. newSingleThreadExecutor
 3. newCachedThreadPool
-
-
-
-
 
 ## 3、Dubbo线程池
 
@@ -401,15 +443,13 @@ Dubbo消费端线程池模型
 
 随后，业务线程从队列中获取到任务后就开始执行了，如反序列化处理等。感兴趣的可看：[消费端线程池模型 | Apache Dubbo](https://dubbo.apache.org/zh/docs/advanced/consumer-threadpool/)
 
-\
-
+\\
 
 再看下服务端线程池。
 
 服务端在处理请求时，主要时采用了IO多路复用的经典模式多线程Reactor模式，即IO线程和Work线程池。在实际开发中可以进行配置派发模式。
 
-\
-
+\\
 
 ```
 all 所有消息都派发到线程池，包括请求，响应，连接事件，断开事件，心跳等。
@@ -421,8 +461,7 @@ connection 在 IO 线程上，将连接断开事件放入队列，有序逐个�
 
 一般情况下都使用message模式，这样将请求相关事件和实际业务处理完全分开。业务由Worker线程完成。
 
-\
-
+\\
 
 ![](https://p3-sign.toutiaoimg.com/tos-cn-i-qvj2lq49k0/4c158322cf5c4585856f615bb5a2ae7d\~noop.image?\_iz=58558\&from=article.pc\_detail\&x-expires=1664882032\&x-signature=O7g9IRziofXrlKZvMSlqfmX8qVo%3D)
 
@@ -430,8 +469,7 @@ connection 在 IO 线程上，将连接断开事件放入队列，有序逐个�
 
 对于Dubbo的服务端，一定要注意线程池耗尽的问题，记得我们电商平台之前在抢购茅台的时候就出现了这个问题，而且线程池耗尽的时候，Dubbo只是输出了warn级别的日志，没做其他处理。对于这个问题，一是要单台机器的配置要做优化，此外要使用集群并实现负载均衡来实现流量分摊。
 
-\
-
+\\
 
 ## 4、Mysql线程池
 
