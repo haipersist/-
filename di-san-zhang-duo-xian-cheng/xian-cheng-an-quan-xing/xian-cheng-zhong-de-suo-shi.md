@@ -958,21 +958,29 @@ mysql> show variables like "%innodb_lock_wait_timeout%";
 
 InnoDB已经帮我们解决了幻读的问题。它是通过MVCC实现的，当然只能在RC和RR两个隔离级别下。俗称快照读。但快照读开始的时间是第一次执行select的时候。
 
-MVCC基本思想就是在每行后面加上两列。
+MVCC基本思想就是在聚簇索引中的每行数据加上两列。
 
 **DB\_TRX\_ID:** 记录操作该数据事务的事务ID，是一个版本号，每开启一个事务就+1；
 
 **DB\_ROLL\_PTR：** 指向上一个版本数据在undo log 里的位置指针；
 
-读操作只会读小于等于当前事务的数据。具体的可看高性能Mysql中的介绍：
+读操作只会读小于等于当前事务的数据。
 
-![](https://p3-sign.toutiaoimg.com/tos-cn-i-qvj2lq49k0/9051c08e456f4949a975833e0c410f5f\~noop.image?\_iz=58558\&from=article.pc\_detail\&x-expires=1664882030\&x-signature=4znHy1tMkDq6r5whbKuqNISAhhE%3D)
+说白了，就是select是快照读，Insert,update,delete为当前读。快照读是通过MVCC，当前读是通过锁实现的。那对于RC和RR两个不同的隔离级别来讲，一个是只要提交就能看见，一个是针对快照读，可重复读。这两种现象的实现都是依靠MVCC的READ VIEW以及上面两个隐藏列实现。而这两者的区别是他们创建READ VIEW的实际不同，RC级别会在每次执行事务都会创建一个READVIEW，RR级别是只会在第一次事务执行时才会创建READ VIEW，在随后的事务执行中，commit之前都会使用同一个 READ VIEW。
 
-高性能Mysql MVVC
+&#x20;    而对于哪些事务是可见或者不可见的，依赖于READ VIEW的多个属性来实现，其中包括min\_trx\_id，活跃事务列表，下一个待分配的id,max\_trx\_id等。举例来说，如果当前事务id小于min\_trx\_id，那么就是可见的，如果在活跃事务列表中，则是不可见的。如果感兴趣的可以看下源码或者其他参考书。
 
-说白了，就是select是快照读，Insert,update,delete为当前读。快照读是通过MVCC，当前读是通过锁实现的，可见下面介绍。
+
 
 不过，MVCC基本解决了幻读，但并不是完全避免。在RR级别下，通过间隙锁就可以解决幻读的问题，在上面介绍间隙锁时已经介绍过了。
+
+
+
+
+
+
+
+
 
 4、Serializable
 
